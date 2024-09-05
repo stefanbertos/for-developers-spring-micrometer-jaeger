@@ -15,8 +15,9 @@ import org.springframework.stereotype.Service;
 public class ProcessingSensorEvent {
     private final SensorDataRepository sensorDataRepository;
 
- //   @Async
-  //  @EventListener
+
+    @EventListener
+    @Async("propagatingContextExecutor")
     public void process(SensorReading sensorReading) {
         log.info("Processing sensor reading: {}", sensorReading);
         sensorDataRepository.save(new SensorData(sensorReading.id(), sensorReading.temperature()));

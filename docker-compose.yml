@@ -1,6 +1,10 @@
 version: "3.8"
 
 services:
+  zipkin:
+    image: 'openzipkin/zipkin:latest'
+    ports:
+      - '9411:9411'
   mongo1:
     image: mongo:7.0
     command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
@@ -74,15 +78,6 @@ services:
       - username_admin_globalaccesslevel=admin
       - username_admin_password=admin
       - system_scaling_maxconnectioncount=100
-  jaeger:
-    image: jaegertracing/all-in-one:latest
-    ports:
-      - '4318:4318'
-      - '4317:4317'
-      - '16686:16686'
-    environment:
-      - COLLECTOR_OTLP_ENABLED=true
-
 
 volumes:
   mongo1_data:

@@ -1,17 +1,16 @@
+server:
+  port: 8888
 spring:
-  app:
-    name: my-sample-app
-
+  application:
+    name: demoapp
   data:
     mongodb:
       host: localhost
       port: 27017
       database: test
-
   threads:
     virtual:
       enabled: true
-
   cloud:
     function:
       definition: sink
@@ -42,8 +41,15 @@ management:
   tracing:
     sampling:
       probability: 1.0
+    enabled: true
+    zipkin:
+      endpoint: http://localhost:9411/api/v2/spans
 
-logging:
-  level:
-    root: info
-    org.springframework: debug
+  prometheus:
+    endpoints:
+      web:
+        exposure:
+          include: health,metrics,observability,prometheus
+    metrics:
+      export:
+        enabled: true
