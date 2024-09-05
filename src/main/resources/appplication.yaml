@@ -12,14 +12,46 @@ spring:
     virtual:
       enabled: true
 
-tracing:
-  url: http://localhost:4318/v1/traces
+  cloud:
+    function:
+      definition: sink
+    stream:
+      bindings:
+        sink-in-0:
+          destination: TEMPS.Q
+          #The presence of "group" tells the binder to follow the "consumer group" pattern
+          group: SINK
+          binder: solace-broker
+          consumer:
+            #Concurrency can be used with a consumer group (non-exclusive queue) to process events in multiple threads
+            concurrency: 5
+      binders:
+        solace-broker:
+          type: solace
+          environment:
+            solace:
+              java:
+                host: tcp://localhost:55555
+                msgVpn: default
+                clientUsername: admin
+                clientPassword: admin
+                connectRetries: -1
+                reconnectRetries: -1
 
 management:
   tracing:
     sampling:
       probability: 1.0
-
-
+    enabled: true
+    otel:
+      exporter:
+        otlp:
+          endpoint: http://localhost:4317
+  endpoints:
+    web:
+      exposure:
+        include: prometheus
+  pattern:
+    level: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'
 
 
