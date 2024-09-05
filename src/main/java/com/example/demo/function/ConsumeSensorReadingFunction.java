@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 @Configuration
 public class ConsumeSensorReadingFunction {
 
-    @Observed
+
     @Bean
     public Consumer<SensorReading> sink(/*ApplicationEventPublisher applicationEventPublisher*/ProcessingSensorEvent processingSensorEvent){
        // return applicationEventPublisher::publishEvent;

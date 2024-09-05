@@ -1,6 +1,6 @@
 spring:
-  application:
-    name: app
+  app:
+    name: my-sample-app
 
   data:
     mongodb:
@@ -42,16 +42,8 @@ management:
   tracing:
     sampling:
       probability: 1.0
-    enabled: true
-    otel:
-      exporter:
-        otlp:
-          endpoint: http://localhost:4317
-  endpoints:
-    web:
-      exposure:
-        include: prometheus
-  pattern:
-    level: '%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]'
 
-
+logging:
+  level:
+    root: info
+    org.springframework: debug
