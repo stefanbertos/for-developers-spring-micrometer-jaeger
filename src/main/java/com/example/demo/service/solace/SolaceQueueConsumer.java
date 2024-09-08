@@ -1,8 +1,6 @@
 package com.example.demo.service.solace;
 
-import brave.Tracing;
-import com.example.demo.dto.SensorReading;
-import com.example.demo.service.ProcessingSensorEvent;
+import com.example.demo.service.AnotherService;
 import com.solacesystems.jcsmp.*;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
@@ -15,7 +13,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import brave.propagation.TraceContext;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -23,6 +21,7 @@ public class SolaceQueueConsumer {
     private final ApplicationEventPublisher applicationEventPublisher;
     private final JCSMPSession jcsmpSession;
     private final Tracer tracer; // Inject the tracer
+    private final AnotherService anotherService; // Inject the other service
     @Value("${solace.java.queueName}")
     private String queueName;
 
@@ -45,38 +44,37 @@ public class SolaceQueueConsumer {
             @SneakyThrows
             @Override
             public void onReceive(BytesXMLMessage msg) {
-                // Check the type of message received
-
-                log.info("Received message: " + msg.dump());
-
                 var traceId = msg.getProperties().getString("traceId");
                 var spanId = msg.getProperties().getString("spanId");
-// Update the tracing context
+
 
                 if (traceId != null && spanId != null) {
                     // Create a new span with the extracted traceId and spanId
-                    Span span = tracer.nextSpan()
-                            .name("SolaceQueueConsumer")
-                            .tag("traceId", traceId)
-                            .tag("spanId", spanId)
-                            .start();
-                    try (Tracer.SpanInScope ws = tracer.withSpan(span)) {
+
+                    // Create a custom TextMap to simulate context propagation
+
+                    // Create a new span
+                    Span newSpan = tracer.nextSpan().name("custom-trace-span").start();
+
+
+
+                    try (Tracer.SpanInScope ws = tracer.withSpan(newSpan)) {
+                        var spanCustomizer = tracer.currentSpanCustomizer();
+                        spanCustomizer.tag("traceId", traceId);
+
                         // Process the message
-                        System.out.println("Received message from queue: " + queueName + " with content: " + msg.dump()
+                        log.info("Received message from queue: " + queueName
                                 + " [traceId: " + traceId + ", spanId: " + spanId + "]");
-                        applicationEventPublisher.publishEvent(new SensorReading("1", 1.24));
-
-
+                        // applicationEventPublisher.publishEvent(new SensorReading("1", 1.24));
+                        // Call the another service method with tracing context
+                        anotherService.processMessage(msg.dump());
                     } finally {
-                        span.end();
+                        newSpan.end();
                     }
                 } else {
                     // Process the message without trace context
                     System.out.println("Received message from queue: " + queueName + " with content: " + msg.dump());
                 }
-
-
-
                 // Acknowledge the message
                 msg.ackMessage();
             }
