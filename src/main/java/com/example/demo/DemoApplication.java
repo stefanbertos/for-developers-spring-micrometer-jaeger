@@ -1,40 +1,28 @@
 package com.example.demo;
 
-import com.example.demo.service.SomeService;
+import com.example.demo.service.solace.SolaceQueueProducer;
+import com.solacesystems.jcsmp.JCSMPException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.event.ApplicationStartedEvent;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.event.EventListener;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.core.task.support.ContextPropagatingTaskDecorator;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 
 @EnableAsync
 @EnableScheduling
 @SpringBootApplication
 public class DemoApplication {
     @Autowired
-    private SomeService someService;
+    private SolaceQueueProducer solaceQueueProducer;
 
     public static void main(String[] args) {
         SpringApplication.run(DemoApplication.class, args);
     }
 
-    @EventListener
-    public void onApplicationEvent(ApplicationStartedEvent ignored) {
-        System.out.println("Hello World!");
-        someService.process();
-    }
 
-    @Bean(name = "propagatingContextExecutor")
-    public TaskExecutor propagatingContextExecutor() {
-        SimpleAsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
-        // decorate task execution with a decorator that supports context propagation
-        taskExecutor.setTaskDecorator(new ContextPropagatingTaskDecorator());
-        return taskExecutor;
+    @Scheduled(initialDelay = 10000, fixedDelay = Long.MAX_VALUE)  // 10 seconds delay, and prevent re-run
+    public void runOnceAfterStartup() throws JCSMPException {
+        solaceQueueProducer.sendMessageToQueue("Hello, World!");
     }
 }

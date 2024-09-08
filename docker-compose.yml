@@ -23,7 +23,7 @@ services:
       - "mongo1_data:/data/db"
       - "mongo1_config:/data/configdb"
 
-  primary:
+  pubsubplus:
     container_name: pubSubStandardSingleNode
     image: solace/solace-pubsub-standard:latest
     volumes:
